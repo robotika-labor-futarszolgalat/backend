@@ -4,7 +4,7 @@ import hu.elte.ik.robotika.futar.vertx.backend.event.Event;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.EventBus;
 
-public class Neo4JVerticle extends AbstractVerticle{
+public class DaoVerticle extends AbstractVerticle{
     EventBus eb;
 
     @Override

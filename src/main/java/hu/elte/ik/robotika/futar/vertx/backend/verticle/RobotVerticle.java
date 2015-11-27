@@ -3,7 +3,7 @@ package hu.elte.ik.robotika.futar.vertx.backend.verticle;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.net.NetServer;
 
-public class TcpVerticle extends AbstractVerticle{
+public class RobotVerticle extends AbstractVerticle{
     @Override
     public void start() {
         NetServer tcp = vertx.createNetServer();
