@@ -3,7 +3,7 @@ package hu.elte.ik.robotika.futar.vertx.backend.util.data;
 public class Tuple {
 	private int first, second;
 	
-	Tuple(int first, int second) {
+	public Tuple(int first, int second) {
 		this.first = first;
 		this.second = second;
 	}

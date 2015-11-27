@@ -4,7 +4,7 @@ public class Int4 {
 	
 	private int a,b,c,d;
 	
-	Int4(int a, int b, int c, int d) {
+	public Int4(int a, int b, int c, int d) {
 		this.a = a;
 		this.b = b;
 		this.c = c;
