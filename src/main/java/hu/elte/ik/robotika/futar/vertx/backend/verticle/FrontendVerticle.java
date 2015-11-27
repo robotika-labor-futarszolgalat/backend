@@ -12,6 +12,7 @@ import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.StaticHandler;
 
 import java.util.ArrayList;
@@ -23,27 +24,29 @@ import java.util.List;
 public class FrontendVerticle extends AbstractVerticle {
     private final Logger log = LoggerFactory.getLogger(FrontendVerticle.class);
     private List<ServerWebSocket> sockets;
-    private HttpServer http;
     private String webRoot;
 
     @Override
     public void start() {
         init();
-        http = vertx.createHttpServer();
+        HttpServer http = vertx.createHttpServer();
         Router router = Router.router(vertx);
-        router.route("/ws").handler(context -> {
-            HttpServerRequest req = context.request();
-            ServerWebSocket ws = req.upgrade();
-            ws.handler(buffer -> System.out.println(buffer));
-            ws.endHandler(event -> sockets.remove(ws));
-        });
+        router.route("/ws").handler(this::handleWebSocketConnection);
         router.route().handler(StaticHandler.create().setWebRoot(webRoot));
         http.requestHandler(router::accept).listen(8080);
+    }
+
+    private void handleWebSocketConnection(RoutingContext context){
+        HttpServerRequest req = context.request();
+        ServerWebSocket ws = req.upgrade();
+        sockets.add(ws);
+        ws.handler(buffer -> System.out.println(buffer));
+        ws.endHandler(event -> sockets.remove(ws));
     }
 
     private void init() {
         log.info("FrontendVerticle starting");
         sockets = new ArrayList<>();
-        webRoot = config().getString("webRoot", "webapp");
+        webRoot = config().getString("webRoot", "./webapp");
     }
 }
