@@ -9,6 +9,8 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.ServerWebSocket;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 
 import java.util.ArrayList;
@@ -18,6 +20,7 @@ import java.util.List;
  * @author joci
  */
 public class FrontendVerticle extends AbstractVerticle {
+    private final Logger log = LoggerFactory.getLogger(FrontendVerticle.class);
     private List<ServerWebSocket> sockets;
     private HttpServer http;
 
@@ -36,6 +39,7 @@ public class FrontendVerticle extends AbstractVerticle {
     }
 
     private void init() {
+        log.info("FrontendVerticle starting");
         sockets = new ArrayList<>();
     }
 }
