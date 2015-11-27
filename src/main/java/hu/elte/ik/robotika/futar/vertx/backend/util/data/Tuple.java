@@ -1,9 +1,9 @@
 package hu.elte.ik.robotika.futar.vertx.backend.util.data;
 
-public class tuple {
+public class Tuple {
 	private int first, second;
 	
-	tuple(int first, int second) {
+	Tuple(int first, int second) {
 		this.first = first;
 		this.second = second;
 	}
