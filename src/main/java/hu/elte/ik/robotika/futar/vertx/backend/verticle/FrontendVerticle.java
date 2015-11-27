@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * @author joci
  */
-public class HttpVerticle extends AbstractVerticle {
+public class FrontendVerticle extends AbstractVerticle {
     private List<ServerWebSocket> sockets;
     private HttpServer http;
 

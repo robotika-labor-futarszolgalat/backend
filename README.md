@@ -15,7 +15,7 @@
 Topic | Sent/published by | When | Consumed by
 -------- | ------- | ------- | -------
 Position updated | RobotVerticle | A robot updates its position | FrontendVerticle
-Map*1 | DaoVerticle | The measured coordinates are queried at startup | HttpVerticle
+Map*1 | DaoVerticle | The measured coordinates are queried at startup | FrontendVerticle
 Shortest path*2 | DaoVerticle | A route needs to be calculated for a robot | RobotVerticle
 Login request | FrontendVerticle| A user tries to log in| DaoVerticle
 *1 __Map should be stored as Vert.x shared data__

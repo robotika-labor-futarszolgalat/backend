@@ -17,8 +17,8 @@ public class DeployVerticle extends AbstractVerticle {
     @Override
     public void start() {
         DeploymentOptions baseConfig = new DeploymentOptions().setConfig(config());
-        vertx.deployVerticle(new HttpVerticle(), baseConfig);
-        vertx.deployVerticle(new TcpVerticle(), baseConfig);
-        vertx.deployVerticle(new Neo4JVerticle(), baseConfig);
+        vertx.deployVerticle(new FrontendVerticle(), baseConfig);
+        vertx.deployVerticle(new RobotVerticle(), baseConfig);
+        vertx.deployVerticle(new DaoVerticle(), baseConfig);
     }
 }
