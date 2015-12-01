@@ -44,7 +44,7 @@ public class InitDb {
 //		System.out.println();
 //	    System.out.println( "Starting database ..." );
 		
-	    graphDb = new GraphDatabaseFactory().newEmbeddedDatabase( "db" );
+	    graphDb = new GraphDatabaseFactory().newEmbeddedDatabase( "hu/elte/ik/robotika/futar/vertx/backend/database/" );
 	}
 	
 	public static void shutDown() {
