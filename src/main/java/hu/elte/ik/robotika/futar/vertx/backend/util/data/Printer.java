@@ -2,7 +2,11 @@ package hu.elte.ik.robotika.futar.vertx.backend.util.data;
 
 import java.util.ArrayList;
 
-	public class Printer {
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
+
+	public class printer {
 	
 		public static void printGrid(IntN[][] grid) {
 			int gridSizeVer = grid.length;
@@ -23,5 +27,47 @@ import java.util.ArrayList;
 				list.get(i).printAll();
 			}
 			System.out.println("");
+		}
+		
+		public static void printDb(GraphDatabaseService graphDb) {
+			System.out.println("Printing all database ...");
+			try ( Transaction tx = graphDb.beginTx();				
+					Result result = graphDb.execute( "MATCH (n) RETURN n" ) ) {
+				
+				System.out.println(result.resultAsString()); 
+
+				tx.success();
+			}	
+		}
+		public static void printAllUsers(GraphDatabaseService graphDb) {
+			System.out.println("Printing all users ...");
+			try ( Transaction tx = graphDb.beginTx();				
+					Result result = graphDb.execute( "MATCH (n {type: 'user'}) RETURN n" ) ) {
+				
+				System.out.println(result.resultAsString()); 
+
+				tx.success();
+			}	
+		}
+		public static void printAllNodes(GraphDatabaseService graphDb) {
+			System.out.println("Printing all nodes ...");
+			try ( Transaction tx = graphDb.beginTx();				
+					Result result = graphDb.execute( "MATCH (n {type: 'node'}) RETURN n" ) ) {
+				
+				System.out.println(result.resultAsString()); 
+
+				tx.success();
+			}	
+		}
+		
+		public static void printAllEdges(GraphDatabaseService graphDb) {
+			System.out.println("Printing all edges ...");
+			try ( Transaction tx = graphDb.beginTx();				
+					Result result = graphDb.execute( "START n=node(*) MATCH (n)-[r]->(m) RETURN n,r,m;" ) ) {
+				
+				System.out.println(result.resultAsString()); 
+
+				tx.success();
+			}	
 		}
 }
