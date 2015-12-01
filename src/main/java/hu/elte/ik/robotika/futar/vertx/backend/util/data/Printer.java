@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 	public class Printer {
 	
-		public static void printGrid(Int4[][] grid) {
+		public static void printGrid(IntN[][] grid) {
 			int gridSizeVer = grid.length;
 			int gridSizeHor = grid[0].length;
 			
@@ -18,15 +18,10 @@ import java.util.ArrayList;
 			System.out.println("");
 		}
 		
-		public static void printInt4Array(ArrayList<Int4> list) {
+		public static void printIntNArray(ArrayList<IntN> list) {		
 			for(int i=0; i<list.size(); ++i) {
 				list.get(i).printAll();
-				System.out.println("");
 			}
 			System.out.println("");
-		}
-		
-		public static void printTuple(Tuple t) {
-			System.out.println("(" + t.getFirst() + "," + t.getSecond() + ")");
 		}
 }

@@ -1,41 +1,41 @@
 package hu.elte.ik.robotika.futar.vertx.backend.util.data;
 
-public class Int4 {
+public class IntN {
+		
+	protected int data[];
 	
-	private int a,b,c,d;
-	
-	public Int4(int a, int b, int c, int d) {
-		this.a = a;
-		this.b = b;
-		this.c = c;
-		this.d = d;
-	}
-	
-	public int get(int n) {
-		int result = -1;
-		switch(n) {
-			case 1:
-				result = a;
-				break;
-			case 2:
-				result = b;
-				break;
-			case 3:
-				result = c;
-				break;
-			case 4:
-				result = d;
-				break;
+	public IntN(int... data) {
+		this.data = new int[data.length];
+		
+		int i = 0;
+		for(int d: data) {
+			this.data[i] = d;
+			i++;
 		}
-		return result;
 	}
 	
-	public Int4 getAll() {
-		return (new Int4(a,b,c,d));
+	public IntN getAll() {
+		return this;
 	}
-	
+
 	public void printAll() {
-		System.out.print("(" + a + ", " + b + ", " + c + ", " + d + ")");
+		System.out.print("(" + data[0]);
+		for(int i=1; i<data.length; ++i) {
+			System.out.print(", " + data[i]);	
+		}
+		System.out.print(")\n");
+	}
+
+	public void set(int i, int n) {
+		data[i] = n;
+	}
+	
+	public void setAll(int[] data) {
+		this.data = data;
+	}
+	
+	public int get(int i) {
+		return data[i];
 	}
 	
 	@Override
@@ -43,23 +43,8 @@ public class Int4 {
 		if(obj == null) return false;
 		if(getClass() != obj.getClass()) return false;
 		
-		Int4 other = (Int4) obj;
-		if(this.a == other.a && this.b == other.b && this.c == other.c && this.d == other.d) return true;
+		IntN other = (IntN) obj;
+		if(this.data == other.data) return true;
 		return false;
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
