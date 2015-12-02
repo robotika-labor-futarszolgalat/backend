@@ -8,19 +8,19 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class DataReader {
-	private int N;//number of nodes
-	private ArrayList<IntN> bt = new ArrayList<IntN>();//N quartets
-	private ArrayList<IntN> realCoords = new ArrayList<IntN>();//N tuples
+	private int numberOfNodes;//number of nodes
+	private ArrayList<IntN> bt = new ArrayList<IntN>();//numberOfNodes quartets
+	private ArrayList<IntN> realCoords = new ArrayList<IntN>();//numberOfNodes tuples
 	
-	private int M;//number of edges
-	private ArrayList<IntN> edges = new ArrayList<IntN>();//M triplets
+	private int numberOfEdges;//number of edges
+	private ArrayList<IntN> edges = new ArrayList<IntN>();//numberOfEdges triplets
 	
 	public void readNodes(String file) throws FileNotFoundException
 	{
 		Scanner scanner = new Scanner(new File(file));
-		N = scanner.nextInt();
+		numberOfNodes = scanner.nextInt();
 
-		for (int j = 0; j < N; j++) {
+		for (int j = 0; j < numberOfNodes; j++) {
 			IntN btData = new IntN(new int[4]);
 			IntN rcData = new IntN(new int[2]);
 			
@@ -44,9 +44,9 @@ public class DataReader {
 	public void readEdges(String file) throws FileNotFoundException {
 		//read edges
 		Scanner scanner = new Scanner(new File(file));
-		M = scanner.nextInt();
+		numberOfEdges = scanner.nextInt();
 		
-		for (int j = 0; j < M; j++) {
+		for (int j = 0; j < numberOfEdges; j++) {
 			IntN eData = new IntN(new int[3]);
 			
 			for (int i = 0; i < 3; ++i)
@@ -60,8 +60,8 @@ public class DataReader {
 //		printer.printIntNArray(edges);
 	}
 
-	public int getN() {
-		return N;
+	public int getNumberOfNodes() {
+		return numberOfNodes;
 	}
 
 	public ArrayList<IntN> getBt() {
@@ -72,8 +72,8 @@ public class DataReader {
 		return realCoords;
 	}
 
-	public int getM() {
-		return M;
+	public int getNumberOfEdges() {
+		return numberOfEdges;
 	}
 
 	public ArrayList<IntN> getEdges() {

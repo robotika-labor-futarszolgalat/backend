@@ -11,6 +11,7 @@ public class InitDb {
 	public static void main(String[] args) {
 			
 		try {
+		
 			createDb();
 			db = new DbManipulator(graphDb);
 			db.readNodes("hu/elte/ik/robotika/futar/vertx/backend/database/map/nodes.txt");
@@ -29,6 +30,11 @@ public class InitDb {
 //			db.insertNode(new IntN(-1,-1), new IntN(-1,-1,-1,-1));
 			
 //			printer.printDb(graphDb);
+
+//			db.deleteNode(-1, -1);
+//			db.deleteuser("peterhuszti");
+			
+//			printer.printDb(graphDb);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -38,6 +44,7 @@ public class InitDb {
 //			db.deleteAlluser();
 			shutDown();
 		}
+		
 	}
 	
 	public static void createDb(){
@@ -51,8 +58,7 @@ public class InitDb {
 //        System.out.println();
 //        System.out.println( "Shutting down database ..." );
 
-        graphDb.shutdown();
+		graphDb.shutdown();
     }
 	
-
 }

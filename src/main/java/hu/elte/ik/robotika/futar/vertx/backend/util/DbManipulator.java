@@ -24,14 +24,14 @@ public class DbManipulator {
 	public void readNodes(String file) {
 		try {
 			reader.readNodes(file);
-		} catch (FileNotFoundException e) {
+		} catch(FileNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
 	public void readEdges(String file) {
 		try {
 			reader.readEdges(file);
-		} catch (FileNotFoundException e) {
+		} catch(FileNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
@@ -44,16 +44,19 @@ public class DbManipulator {
 	//throws exception
 	//valtozora h kell szurni?
 	public void findPerson(String realName) {
-		try ( Transaction tx = graphDb.beginTx();	
-				Result result = graphDb.execute( "MATCH (n) "
-				+ "WHERE n.type = 'user' AND n.name = {realName} RETURN n" ) ) {
+		try (Transaction tx = graphDb.beginTx();	
+			 Result result = graphDb.execute("MATCH (n) "
+			 + "WHERE n.type = 'user' AND n.name = {realName} RETURN n")) {
+			 
 			System.out.println(result.resultAsString());
+			
 			tx.success();
 		}	
 	}
 	
 	public void insertNode(IntN coords, IntN bt) {
-		try ( Transaction tx = graphDb.beginTx()) {
+		try (Transaction tx = graphDb.beginTx()) {
+			
 			Node node = graphDb.createNode();
 			node.setProperty("type", "node");
 			node.setProperty("posX",coords.get(0));
@@ -62,14 +65,15 @@ public class DbManipulator {
 			node.setProperty("second",bt.get(1));
 			node.setProperty("third",bt.get(2));
 			node.setProperty("fourth",bt.get(3));
+			
 			tx.success();
 		}
 	}
 	
 	public void insertMapNodes() {
-		
-		try ( Transaction tx = graphDb.beginTx()) {
-			for(int i=0; i<reader.getN(); ++i) {
+		try (Transaction tx = graphDb.beginTx()) {
+			
+			for(int i=0; i<reader.getNumberOfNodes(); ++i) {
 				Node node = graphDb.createNode();
 				node.setProperty("type", "node");
 				node.setProperty("posX",reader.getRealCoords().get(i).get(0));
@@ -85,17 +89,16 @@ public class DbManipulator {
 	}
 	
 	public void insertMapEdges() {		
-		try ( Transaction tx = graphDb.beginTx();	
-				Result result = graphDb.execute( "MATCH (n {type: 'node'}) RETURN n" ) ) {
+		try (Transaction tx = graphDb.beginTx();	
+			 Result result = graphDb.execute("MATCH (n {type: 'node'}) RETURN n")) {
 			
 			ArrayList<Node> nodes = new ArrayList<Node>();
-			while ( result.hasNext() )
-		    {
+			while(result.hasNext()) {
 		         Map<String, Object> row = result.next();
 		         nodes.add((Node) row.values().toArray()[0]);
 		    }
 			
-			for(int i=0; i<reader.getM(); ++i) {
+			for(int i=0; i<reader.getNumberOfEdges(); ++i) {
 				Relationship rel = nodes.get(reader.getEdges().get(i).get(0)).createRelationshipTo(nodes.get(reader.getEdges().get(i).get(1)), RelTypes.KNOWS);
 				rel.setProperty("cost", reader.getEdges().get(i).get(2));
 				Relationship rel2 = nodes.get(reader.getEdges().get(i).get(1)).createRelationshipTo(nodes.get(reader.getEdges().get(i).get(0)), RelTypes.KNOWS);
@@ -111,7 +114,8 @@ public class DbManipulator {
 	}
 	
 	public void insertTestUsers() {
-		try ( Transaction tx = graphDb.beginTx()) {
+		try (Transaction tx = graphDb.beginTx()) {
+		
 			for(int i=0; i<3; ++i) {
 				Node testUser = graphDb.createNode();
 				testUser.setProperty("type", "user");
@@ -126,7 +130,8 @@ public class DbManipulator {
 	}
 	
 	public void insertUser(String name, String username, String pwd, int room) {
-		try ( Transaction tx = graphDb.beginTx()) {	
+		try (Transaction tx = graphDb.beginTx()) {
+		
 			Node user = graphDb.createNode();
 			user.setProperty("type", "user");
 			user.setProperty("name", name);
@@ -138,24 +143,40 @@ public class DbManipulator {
 		}
 	}
 	
+	public void deleteEdge(int posX, int posY) {
+		//TODO
+	}
+	
+	public void deleteNode(int posX, int posY) {
+		//TODO
+	}
+	
+	public void deleteuser(String username) {
+		//TODO
+	}
+	
 	public void deleteAllEdge() {
-		try ( Transaction tx = graphDb.beginTx();	
-				  Result result = graphDb.execute( "START r=relationship(*) DELETE r" ) ) {
-					tx.success();
-			}
+		try (Transaction tx = graphDb.beginTx();	
+			 Result result = graphDb.execute("START r=relationship(*) DELETE r")) {
+			 
+			tx.success();
+		}
 	}
 	
 	public void deleteAllNode() {
-		try ( Transaction tx = graphDb.beginTx();	
-			  Result result = graphDb.execute( "MATCH (n {type: 'node'}) DELETE n" ) ) {
-				tx.success();
-			}
+		try (Transaction tx = graphDb.beginTx();	
+			 Result result = graphDb.execute("MATCH (n {type: 'node'}) DELETE n")) {
+			
+			tx.success();
+		}
 	}
 	
 	public void deleteAlluser() {
-		try ( Transaction tx = graphDb.beginTx();	
-				Result result = graphDb.execute( "MATCH (n {type: 'user'}) DELETE n" ) ) {
-					tx.success();
-				}
+		try (Transaction tx = graphDb.beginTx();	
+			 Result result = graphDb.execute("MATCH (n {type: 'user'}) DELETE n")) {
+			
+			tx.success();
+		}
 	}
+	
 }

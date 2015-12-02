@@ -6,8 +6,8 @@ public class IntN {
 	
 	public IntN(int... data) {
 		this.data = new int[data.length];
-		
 		int i = 0;
+		
 		for(int d: data) {
 			this.data[i] = d;
 			i++;
