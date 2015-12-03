@@ -71,7 +71,7 @@ public class DbManipulator {
 		
 			PathFinder<WeightedPath> finder = GraphAlgoFactory.dijkstra(PathExpanders.forTypeAndDirection( RelTypes.KNOWS,  Direction.BOTH), "cost");
 			
-			WeightedPath path = finder.findSinglePath(endNode, startNode);
+			WeightedPath path = finder.findSinglePath(endNode, startNode);//node2 --> node
 			System.out.println(path);
 			tx.success();
 		} 
