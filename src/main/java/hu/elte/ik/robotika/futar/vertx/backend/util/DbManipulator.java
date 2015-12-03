@@ -54,6 +54,59 @@ public class DbManipulator {
 		}	
 	}
 	
+	//TODO
+	public ArrayList<IntN> findShortestPath(IntN start, IntN end) {
+		ArrayList<IntN> result = new ArrayList<IntN>();
+		
+		try (Transaction tx = graphDb.beginTx()) {
+			Result s = graphDb.execute( "MATCH (n) "
+			+ "WHERE n.type = 'node' AND n.posX = 0 AND n.posY = 0 RETURN n" ) ;
+			
+			Result e = graphDb.execute( "MATCH (n) "
+			+ "WHERE n.type = 'node' AND n.posX = 50 AND n.posY = 50 RETURN n" ) ;
+			
+			Map<String, Object> rowS = s.next();
+		    Node startNode = (Node) rowS.values().toArray()[0];
+		       
+		    Map<String, Object> rowE = e.next();
+		    Node endNode = (Node) rowE.values().toArray()[0];
+		
+			PathFinder<WeightedPath> finder = GraphAlgoFactory.dijkstra(PathExpanders.forTypeAndDirection( RelTypes.KNOWS,  Direction.BOTH), "cost");
+			
+			WeightedPath path = finder.findSinglePath(endNode, startNode);
+			System.out.println(path);
+			
+			String[] splitted = path.toString().split(">");
+			
+			for(int i=splitted.length-1; i>=0; --i) {	
+				result.add(findNodeById((int) splitted[i].charAt(1)));
+			}
+					System.out.println(result);
+			
+			
+			tx.success();
+		}
+		
+		return result;
+	}
+	
+	//TODO
+	public IntN findNodeById(int id) {
+		Node node;
+		
+		try (Transaction tx = graphDb.beginTx()) {
+			Result result = graphDb.execute( "MATCH (n) "
+			+ "WHERE n.type = 'node' AND n.id = id RETURN n" ) ;
+			
+			Map<String, Object> row = result.next();
+		    node = (Node) row.values().toArray()[0];
+		    			
+			tx.success();
+		} 
+		
+		return new IntN((int) node.getProperty("posX"), (int) node.getProperty("posY"));
+	}
+	
 	public void insertNode(IntN coords, IntN bt) {
 		try (Transaction tx = graphDb.beginTx()) {
 			
