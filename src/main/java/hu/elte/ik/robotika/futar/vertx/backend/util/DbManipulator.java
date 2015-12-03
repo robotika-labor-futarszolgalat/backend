@@ -54,29 +54,6 @@ public class DbManipulator {
 		}	
 	}
 	
-	//TODO
-	public void findShortestPath(IntN start, IntN end) {
-		try (Transaction tx = graphDb.beginTx()) {
-			Result s = graphDb.execute( "MATCH (n) "
-			+ "WHERE n.type = 'node' AND n.posX = 0 AND n.posY = 0 RETURN n" ) ;
-			
-			Result e = graphDb.execute( "MATCH (n) "
-			+ "WHERE n.type = 'node' AND n.posX = 50 AND n.posY = 50 RETURN n" ) ;
-			
-			Map<String, Object> rowS = s.next();
-		    Node startNode = (Node) rowS.values().toArray()[0];
-		       
-		    Map<String, Object> rowE = e.next();
-		    Node endNode = (Node) rowE.values().toArray()[0];
-		
-			PathFinder<WeightedPath> finder = GraphAlgoFactory.dijkstra(PathExpanders.forTypeAndDirection( RelTypes.KNOWS,  Direction.BOTH), "cost");
-			
-			WeightedPath path = finder.findSinglePath(endNode, startNode);//node2 --> node
-			System.out.println(path);
-			tx.success();
-		} 
-	}
-	
 	public void insertNode(IntN coords, IntN bt) {
 		try (Transaction tx = graphDb.beginTx()) {
 			
