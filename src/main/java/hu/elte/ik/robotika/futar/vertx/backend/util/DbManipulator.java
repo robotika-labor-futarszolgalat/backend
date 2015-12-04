@@ -40,71 +40,86 @@ public class DbManipulator {
 		KNOWS
 	}
 	
-	//TODO
-	//throws exception
-	//valtozora h kell szurni?
 	public void findPerson(String realName) {
-		try (Transaction tx = graphDb.beginTx();	
-			 Result result = graphDb.execute("MATCH (n) "
-			 + "WHERE n.type = 'user' AND n.name = {realName} RETURN n")) {
-			 
+		try ( Transaction tx = graphDb.beginTx();	
+				Result result = graphDb.execute( "MATCH (n) "
+				+ "WHERE n.type = 'user' AND n.name = '" + realName + "' RETURN n" ) ) {
 			System.out.println(result.resultAsString());
-			
 			tx.success();
 		}	
 	}
 	
-	//TODO
 	public ArrayList<IntN> findShortestPath(IntN start, IntN end) {
 		ArrayList<IntN> result = new ArrayList<IntN>();
 		
 		try (Transaction tx = graphDb.beginTx()) {
+
 			Result s = graphDb.execute( "MATCH (n) "
-			+ "WHERE n.type = 'node' AND n.posX = 0 AND n.posY = 0 RETURN n" ) ;
-			
+			+ "WHERE n.type = 'node' AND n.posX = " + start.get(0) + " AND n.posY = " + start.get(1) + " RETURN n" ) ;
+	
 			Result e = graphDb.execute( "MATCH (n) "
-			+ "WHERE n.type = 'node' AND n.posX = 50 AND n.posY = 50 RETURN n" ) ;
+			+ "WHERE n.type = 'node' AND n.posX = " + end.get(0) + " AND n.posY = " + end.get(1) + " RETURN n" ) ;
 			
 			Map<String, Object> rowS = s.next();
 		    Node startNode = (Node) rowS.values().toArray()[0];
-		       
+		    
 		    Map<String, Object> rowE = e.next();
 		    Node endNode = (Node) rowE.values().toArray()[0];
 		
 			PathFinder<WeightedPath> finder = GraphAlgoFactory.dijkstra(PathExpanders.forTypeAndDirection( RelTypes.KNOWS,  Direction.BOTH), "cost");
 			
 			WeightedPath path = finder.findSinglePath(endNode, startNode);
-			System.out.println(path);
 			
+			result = new ArrayList<IntN>();
+
 			String[] splitted = path.toString().split(">");
 			
-			for(int i=splitted.length-1; i>=0; --i) {	
-				result.add(findNodeById((int) splitted[i].charAt(1)));
+			for(int i=splitted.length-1; i>=0; --i) {					
+				String nodeId = "";
+				int j = 1;
+				while(splitted[i].charAt(j) > 47 && splitted[i].charAt(j) < 58) {
+					nodeId += splitted[i].charAt(j++);
+				}
+				
+				result.add(findNodePosById(Integer.parseInt(nodeId)));
 			}
-					System.out.println(result);
-			
 			
 			tx.success();
-		}
+		} 
 		
 		return result;
 	}
 	
-	//TODO
-	public IntN findNodeById(int id) {
+	public IntN findNodePosById(int id) {
 		Node node;
 		
 		try (Transaction tx = graphDb.beginTx()) {
 			Result result = graphDb.execute( "MATCH (n) "
-			+ "WHERE n.type = 'node' AND n.id = id RETURN n" ) ;
-			
+			+ "WHERE n.type = 'node' AND n.nodeId = " + id + " RETURN n" ) ;
+
 			Map<String, Object> row = result.next();
 		    node = (Node) row.values().toArray()[0];
-		    			
+		 
 			tx.success();
 		} 
 		
 		return new IntN((int) node.getProperty("posX"), (int) node.getProperty("posY"));
+	}
+	
+	public Node findNodeById(int id) {
+		Node node;
+		
+		try (Transaction tx = graphDb.beginTx()) {
+			Result result = graphDb.execute( "MATCH (n) "
+			+ "WHERE n.type = 'node' AND n.nodeId = " + id + " RETURN n" ) ;
+
+			Map<String, Object> row = result.next();
+		    node = (Node) row.values().toArray()[0];
+		 
+			tx.success();
+		} 
+		
+		return node;
 	}
 	
 	public void insertNode(IntN coords, IntN bt) {
@@ -162,8 +177,19 @@ public class DbManipulator {
 		}
 	}
 	
-	public void insertEdge(IntN edge) {
-		//TODO
+	public void insertEdge(int node1Id, int node2Id, int cost) {
+		try ( Transaction tx = graphDb.beginTx()) {	
+			
+			Node node1 = findNodeById(node1Id);
+			Node node2 = findNodeById(node2Id);
+			
+			Relationship rel = node1.createRelationshipTo(node2, RelTypes.KNOWS);
+			rel.setProperty("cost", cost);
+			Relationship rel2 = node2.createRelationshipTo(node1, RelTypes.KNOWS);
+			rel2.setProperty("cost", cost);
+						
+			tx.success();
+		}
 	}
 	
 	public void insertTestUsers() {
@@ -196,16 +222,40 @@ public class DbManipulator {
 		}
 	}
 	
-	public void deleteEdge(int posX, int posY) {
-		//TODO
+	public void deleteEdge(int node1Id, int node2Id) {
+		try ( Transaction tx = graphDb.beginTx()) {
+			Result result = graphDb.execute( "START r=relationship(*) RETURN r" );
+			Node node1 = findNodeById(node1Id);
+			Node node2 = findNodeById(node2Id);
+		    
+			while ( result.hasNext() ) {
+				Map<String, Object> row = result.next();
+				for ( String key : result.columns() ) {
+					Relationship r = ((Relationship) row.get(key));
+		            Node[] nodes = r.getNodes(); 
+			        if( (node1.equals(nodes[0]) && node2.equals(nodes[1])) || (node1.equals(nodes[1]) && node2.equals(nodes[0])) ){
+			        	r.delete();
+			        }
+		             
+		         }
+			}
+			
+			tx.success();
+		}
 	}
 	
-	public void deleteNode(int posX, int posY) {
-		//TODO
+	public void deleteNode(int nodeId) {
+		try ( Transaction tx = graphDb.beginTx();	
+				  Result result = graphDb.execute( "MATCH (n) WHERE n.type = 'node' AND n.nodeId = " + nodeId + " DETACH DELETE n" ) ) {
+					tx.success();
+				}
 	}
 	
-	public void deleteuser(String username) {
-		//TODO
+	public void deleteUser(String username) {
+		try ( Transaction tx = graphDb.beginTx();	
+				  Result result = graphDb.execute( "MATCH (n) WHERE n.type = 'user' AND n.username = '" + username + "' DELETE n" ) ) {
+					tx.success();
+				}
 	}
 	
 	public void deleteAllEdge() {
