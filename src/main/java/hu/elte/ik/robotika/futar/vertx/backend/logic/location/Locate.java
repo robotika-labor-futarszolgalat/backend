@@ -1,10 +1,10 @@
 package hu.elte.ik.robotika.futar.vertx.backend.logic.location;
 
+import java.util.ArrayList;
+import java.util.Random;
+
 import hu.elte.ik.robotika.futar.vertx.backend.util.data.IntN;
 import hu.elte.ik.robotika.futar.vertx.backend.util.data.Printer;
-
-import java.util.Random;
-import java.util.ArrayList;
 
 public class Locate {
 	
@@ -13,6 +13,8 @@ public class Locate {
 	private static int error; //error in measuring dB, maybe depends on the distance, possibly will be a function
 	private static IntN[][] grid; //map
 	private static IntN robot; //recieved coordinates from the robot
+	
+	private static Printer printer = new Printer();
 	
 	public static void init() {		
 		min = 0;
