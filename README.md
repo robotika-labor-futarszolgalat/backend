@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/robotika-labor-futarszolgalat/backend.svg?branch=master)](https://travis-ci.org/robotika-labor-futarszolgalat/backend)
+
 #Backend docs
 ##Verticles
 <dl>
