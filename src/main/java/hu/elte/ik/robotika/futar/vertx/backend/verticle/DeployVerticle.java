@@ -11,7 +11,7 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
-public class DeployVerticle extends AbstractVerticle {
+public class DeployVerticle exteds AbstractVerticle {
     private final Logger log = LoggerFactory.getLogger(DeployVerticle.class);
 
     public static void main(String[] args) {
