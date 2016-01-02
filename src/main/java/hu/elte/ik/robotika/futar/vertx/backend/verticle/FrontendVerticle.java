@@ -5,48 +5,113 @@
  */
 package hu.elte.ik.robotika.futar.vertx.backend.verticle;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.http.HttpStatus;
+
+import hu.elte.ik.robotika.futar.vertx.backend.auth.SimpleAuthHandler;
+import hu.elte.ik.robotika.futar.vertx.backend.domain.User;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.ServerWebSocket;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.shiro.ShiroAuth;
+import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.CookieHandler;
+import io.vertx.ext.web.handler.FormLoginHandler;
+import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.StaticHandler;
-
-import java.util.ArrayList;
-import java.util.List;
+import io.vertx.ext.web.handler.UserSessionHandler;
+import io.vertx.ext.web.sstore.LocalSessionStore;
 
 /**
  * @author joci
  */
 public class FrontendVerticle extends AbstractVerticle {
-    private final Logger log = LoggerFactory.getLogger(FrontendVerticle.class);
-    private List<ServerWebSocket> sockets;
-    private String webRoot;
+	private final Logger log = LoggerFactory.getLogger(FrontendVerticle.class);
+	private List<ServerWebSocket> sockets;
 
-    @Override
-    public void start() {
-        init();
-        HttpServer http = vertx.createHttpServer();
-        Router router = Router.router(vertx);
-        router.route("/ws").handler(this::handleWebSocketConnection);
-        router.route().handler(StaticHandler.create().setWebRoot(webRoot));
-        http.requestHandler(router::accept).listen(8080);
-    }
+	private String webRoot;
 
-    private void handleWebSocketConnection(RoutingContext context){
-        HttpServerRequest req = context.request();
-        ServerWebSocket ws = req.upgrade();
-        sockets.add(ws);
-        ws.handler(buffer -> System.out.println(buffer));
-        ws.endHandler(event -> sockets.remove(ws));
-    }
+	// Create some static users
+	private static Map<Integer, User> users = new LinkedHashMap<>();
 
-    private void init() {
-        log.info("FrontendVerticle starting");
-        sockets = new ArrayList<>();
-        webRoot = config().getString("webRoot", "./webapp");
-    }
+	{
+		User adalee = new User("Adalee Smith", "D 0.122");
+		users.put(adalee.getId(), adalee);
+
+		User bob = new User("Bob Anderson", "D 0.120");
+		users.put(bob.getId(), bob);
+	}
+
+	private void getAllUser(RoutingContext routingContext) {
+		routingContext.response().putHeader("content-type", "application/json; charset=utf-8")
+			.end(Json.encodePrettily(users.values()));
+	}
+
+	@Override
+	public void start() {
+
+		init();
+		HttpServer http = vertx.createHttpServer();
+		Router router = Router.router(vertx);
+
+		// Setup websocket connection handling
+		router.route("/ws").handler(this::handleWebSocketConnection);
+
+		// Setup http session auth handling
+		router.route().handler(CookieHandler.create());
+		router.route().handler(BodyHandler.create());
+		router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+
+		// Simple auth service which uses a properties file for user/role info
+		AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, new JsonObject());
+
+		// We need a user session handler too to make sure the user is stored in
+		// the session between requests
+		router.route().handler(UserSessionHandler.create(authProvider));
+
+		// Any requests to URI starting '/private/' require login
+		router.route("/private/*").handler(SimpleAuthHandler.create(authProvider));
+
+		// Serve the static private pages from directory 'private'
+		router.route("/private/user/getAll").handler(this::getAllUser);
+		router.route("/user/getAll").handler(this::getAllUser);
+
+		router.route("/loginhandler").handler(FormLoginHandler.create(authProvider));
+
+		router.route("/logout").handler(context -> {
+			context.clearUser();
+			// Status OK
+			context.response().setStatusCode(HttpStatus.SC_OK).end();
+		});
+
+		router.route().handler(StaticHandler.create().setWebRoot(webRoot));
+		http.requestHandler(router::accept).listen(8088);
+	}
+
+	private void handleWebSocketConnection(RoutingContext context) {
+		HttpServerRequest req = context.request();
+		ServerWebSocket ws = req.upgrade();
+		sockets.add(ws);
+		ws.handler(buffer -> System.out.println(buffer));
+		ws.endHandler(event -> sockets.remove(ws));
+	}
+
+	private void init() {
+		log.info("FrontendVerticle starting");
+		sockets = new ArrayList<>();
+		webRoot = config().getString("webRoot", "src/main/resources/webroot");
+	}
 }

@@ -13,24 +13,38 @@
     <properties>
         <!-- the main verticle -->
         <main.verticle>hu.elte.ik.robotika.futar.vertx.backend.verticle.DeployVerticle</main.verticle>
+        <vertx-main.version>3.1.0</vertx-main.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-core</artifactId>
-            <version>3.1.0</version>
+            <version>${vertx-main.version}</version>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-web</artifactId>
-            <version>3.1.0</version>
+            <version>${vertx-main.version}</version>
         </dependency>
         <dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j</artifactId>
 			<version>2.3.1</version>
 		</dependency>
+		
+		<dependency>
+      		<groupId>io.vertx</groupId>
+      		<artifactId>vertx-auth-shiro</artifactId>
+      		<version>${vertx-main.version}</version>
+    	</dependency>
+    	
+    	<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.1</version>
+		</dependency>
+		    	
     </dependencies>
 
     <build>
