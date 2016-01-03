@@ -13,6 +13,7 @@ import java.util.Map;
 import org.apache.http.HttpStatus;
 
 import hu.elte.ik.robotika.futar.vertx.backend.auth.SimpleAuthHandler;
+import hu.elte.ik.robotika.futar.vertx.backend.auth.SimpleLoginHandler;
 import hu.elte.ik.robotika.futar.vertx.backend.domain.User;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.http.HttpServer;
@@ -29,7 +30,6 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CookieHandler;
-import io.vertx.ext.web.handler.FormLoginHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.handler.UserSessionHandler;
@@ -44,7 +44,7 @@ public class FrontendVerticle extends AbstractVerticle {
 
 	private String webRoot;
 
-	// Create some static users
+	// Create some static test entity user
 	private static Map<Integer, User> users = new LinkedHashMap<>();
 
 	{
@@ -57,7 +57,20 @@ public class FrontendVerticle extends AbstractVerticle {
 
 	private void getAllUser(RoutingContext routingContext) {
 		routingContext.response().putHeader("content-type", "application/json; charset=utf-8")
-			.end(Json.encodePrettily(users.values()));
+				.end(Json.encodePrettily(users.values()));
+	}
+
+	/**
+	 * Preload data
+	 * 
+	 * @param routingContext
+	 */
+	private void getInfo(RoutingContext routingContext) {
+		JsonObject resp = new JsonObject();
+		resp.put("preload", "data");
+
+		routingContext.response().putHeader("content-type", "application/json; charset=utf-8")
+				.end(Json.encodePrettily(resp));
 	}
 
 	@Override
@@ -82,14 +95,17 @@ public class FrontendVerticle extends AbstractVerticle {
 		// the session between requests
 		router.route().handler(UserSessionHandler.create(authProvider));
 
-		// Any requests to URI starting '/private/' require login
-		router.route("/private/*").handler(SimpleAuthHandler.create(authProvider));
+		// Any requests to URI starting '/rest/' require login
+		router.route("/rest/*").handler(SimpleAuthHandler.create(authProvider));
 
-		// Serve the static private pages from directory 'private'
-		router.route("/private/user/getAll").handler(this::getAllUser);
-		router.route("/user/getAll").handler(this::getAllUser);
+		// Serve the static private pages from directory 'rest'
+		// user/getAll TEST page
+		router.route("/rest/user/getAll").handler(this::getAllUser);
 
-		router.route("/loginhandler").handler(FormLoginHandler.create(authProvider));
+		// Preload
+		router.route("/rest/info").handler(this::getInfo);
+
+		router.route("/loginhandler").handler(SimpleLoginHandler.create(authProvider));
 
 		router.route("/logout").handler(context -> {
 			context.clearUser();
