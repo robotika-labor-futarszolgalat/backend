@@ -22,8 +22,7 @@ public class DeployVerticle extends AbstractVerticle {
     public void start() {
         init();
         DeploymentOptions baseConfig = new DeploymentOptions().setConfig(config());
-        vertx.deployVerticle(new FrontendVerticle(), baseConfig);
-        vertx.deployVerticle(new RobotVerticle(), baseConfig);
+        vertx.deployVerticle(new HTTPVerticle(), baseConfig);
         vertx.deployVerticle(new DaoVerticle(), baseConfig);
     }
 

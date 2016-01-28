@@ -34,12 +34,13 @@ import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.handler.UserSessionHandler;
 import io.vertx.ext.web.sstore.LocalSessionStore;
+import java.util.stream.Stream;
 
 /**
  * @author joci
  */
-public class FrontendVerticle extends AbstractVerticle {
-	private final Logger log = LoggerFactory.getLogger(FrontendVerticle.class);
+public class HTTPVerticle extends AbstractVerticle {
+	private final Logger log = LoggerFactory.getLogger(HTTPVerticle.class);
 	private List<ServerWebSocket> sockets;
 
 	private String webRoot;
@@ -82,6 +83,9 @@ public class FrontendVerticle extends AbstractVerticle {
 
 		// Setup websocket connection handling
 		router.route("/ws").handler(this::handleWebSocketConnection);
+                
+                // Handle robot position data
+                router.route("/api/robotposition/:data").handler(this::handleRobotPositionData);
 
 		// Setup http session auth handling
 		router.route().handler(CookieHandler.create());
@@ -122,8 +126,17 @@ public class FrontendVerticle extends AbstractVerticle {
 		ServerWebSocket ws = req.upgrade();
 		sockets.add(ws);
 		ws.handler(buffer -> System.out.println(buffer));
-		ws.endHandler(event -> sockets.remove(ws));
+		ws.endHandler(e -> sockets.remove(ws));
 	}
+        
+        private void handleRobotPositionData(RoutingContext context){
+            HttpServerRequest req = context.request();
+            String data = req.getParam("data");
+            System.out.println("Data from robot:");
+            Stream.of(data.split("_")).forEach(System.out::println);
+            System.out.println("\n");
+            context.response().end();
+        }
 
 	private void init() {
 		log.info("FrontendVerticle starting");
