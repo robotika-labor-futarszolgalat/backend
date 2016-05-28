@@ -1,2 +1,1 @@
-web: java -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=$PORT \
-	-jar "$(find target/ -name "robotika-*.jar" 2> /dev/null)" 
+web: web: java $JAVA_OPTS -Dhttp.port=$PORT -jar target/robotika-vertx-backend-1.0-SNAPSHOT-fat.jar
