@@ -118,7 +118,7 @@ public class HTTPVerticle extends AbstractVerticle {
 		});
 
 		router.route().handler(StaticHandler.create().setWebRoot(webRoot));
-		http.requestHandler(router::accept).listen(8088);
+		http.requestHandler(router::accept).listen(Integer.getInteger("http.port"), 				System.getProperty("http.address", "0.0.0.0"));
 	}
 
 	private void handleWebSocketConnection(RoutingContext context) {
