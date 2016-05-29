@@ -35,6 +35,11 @@ import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.handler.UserSessionHandler;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import java.util.stream.Stream;
+import io.vertx.ext.web.handler.sockjs.BridgeEventType;
+import io.vertx.ext.web.handler.sockjs.BridgeOptions;
+import io.vertx.ext.web.handler.sockjs.PermittedOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSHandler;
+import io.vertx.ext.web.RoutingContext;
 
 /**
  * @author joci
@@ -56,14 +61,28 @@ public class HTTPVerticle extends AbstractVerticle {
 		users.put(bob.getId(), bob);
 	}
 
+	private SockJSHandler eventBusHandler() {
+    BridgeOptions options = new BridgeOptions()
+            .addOutboundPermitted(new PermittedOptions().setAddressRegex("muhaha"));
+		// use this to send message to the clients:
+		// routingContext.vertx().eventBus().publish("muhaha", routingContext.getBodyAsString());
+    return SockJSHandler.create(vertx).bridge(options, event -> {
+         if (event.type() == BridgeEventType.SOCKET_CREATED) {
+            log.info("A socket was created");
+        }
+        event.complete(true);
+    });
+	}
+
 	private void getAllUser(RoutingContext routingContext) {
+		log.info("Get all users");
 		routingContext.response().putHeader("content-type", "application/json; charset=utf-8")
 				.end(Json.encodePrettily(users.values()));
 	}
 
 	/**
 	 * Preload data
-	 * 
+	 *
 	 * @param routingContext
 	 */
 	private void getInfo(RoutingContext routingContext) {
@@ -82,10 +101,10 @@ public class HTTPVerticle extends AbstractVerticle {
 		Router router = Router.router(vertx);
 
 		// Setup websocket connection handling
-		router.route("/ws").handler(this::handleWebSocketConnection);
-                
-                // Handle robot position data
-                router.route("/api/robotposition/:data").handler(this::handleRobotPositionData);
+		router.route("/eventbus/*").handler(eventBusHandler());
+
+    // Handle robot position data
+    router.route("/api/robotposition/:data").handler(this::handleRobotPositionData);
 
 		// Setup http session auth handling
 		router.route().handler(CookieHandler.create());
@@ -118,25 +137,25 @@ public class HTTPVerticle extends AbstractVerticle {
 		});
 
 		router.route().handler(StaticHandler.create().setWebRoot(webRoot));
-		http.requestHandler(router::accept).listen(Integer.getInteger("http.port"), 				System.getProperty("http.address", "0.0.0.0"));
+		http.websocketHandler(ws -> ws.handler(buffer -> log.info("buffer"))).requestHandler(router::accept).listen(Integer.getInteger("http.port"), System.getProperty("http.address", "0.0.0.0"));
 	}
 
 	private void handleWebSocketConnection(RoutingContext context) {
 		HttpServerRequest req = context.request();
 		ServerWebSocket ws = req.upgrade();
 		sockets.add(ws);
-		ws.handler(buffer -> System.out.println(buffer));
+		ws.handler(buffer -> log.info(buffer));
 		ws.endHandler(e -> sockets.remove(ws));
 	}
-        
-        private void handleRobotPositionData(RoutingContext context){
-            HttpServerRequest req = context.request();
-            String data = req.getParam("data");
-            System.out.println("Data from robot:");
-            Stream.of(data.split("_")).forEach(System.out::println);
-            System.out.println("\n");
-            context.response().end();
-        }
+
+  private void handleRobotPositionData(RoutingContext context){
+      HttpServerRequest req = context.request();
+      String data = req.getParam("data");
+      System.out.println("Data from robot:");
+      Stream.of(data.split("_")).forEach(System.out::println);
+      System.out.println("\n");
+      context.response().end();
+  }
 
 	private void init() {
 		log.info("FrontendVerticle starting");
