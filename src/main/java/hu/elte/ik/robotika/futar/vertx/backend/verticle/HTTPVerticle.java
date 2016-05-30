@@ -48,6 +48,8 @@ public class HTTPVerticle extends AbstractVerticle {
 	private final Logger log = LoggerFactory.getLogger(HTTPVerticle.class);
 	private List<ServerWebSocket> sockets;
 
+	private List<String> activeRobots = new ArrayList<String>();
+
 	private String webRoot;
 
 	// Create some static test entity user
@@ -63,14 +65,57 @@ public class HTTPVerticle extends AbstractVerticle {
 
 	private SockJSHandler eventBusHandler() {
     BridgeOptions options = new BridgeOptions()
-            .addOutboundPermitted(new PermittedOptions().setAddressRegex("muhaha"));
+            .addOutboundPermitted(new PermittedOptions().setAddressRegex("new.robot"));
+		options.addOutboundPermitted(new PermittedOptions().setAddressRegex("logout.robot"));
+		options.addInboundPermitted(new PermittedOptions().setAddressRegex("login.robot"));
+		options.addInboundPermitted(new PermittedOptions().setAddressRegex("login.client"));
+		options.addInboundPermitted(new PermittedOptions().setAddressRegex("robot.\\.[0-9]+"));
 		// use this to send message to the clients:
 		// routingContext.vertx().eventBus().publish("muhaha", routingContext.getBodyAsString());
     return SockJSHandler.create(vertx).bridge(options, event -> {
-         if (event.type() == BridgeEventType.SOCKET_CREATED) {
+          if (event.type() == BridgeEventType.SOCKET_CREATED) {
             log.info("A socket was created");
-        }
-        event.complete(true);
+	        }
+					if (event.type() == BridgeEventType.SOCKET_CLOSED) {
+            log.info("A socket was closed");
+						if (activeRobots.contains(event.socket().writeHandlerID()))
+						{
+						  log.info("Robot logged out");
+						  activeRobots.remove(event.socket().writeHandlerID());
+						  JsonObject response = new JsonObject();
+							response.put("robotId", event.socket().writeHandlerID());
+							vertx.eventBus().publish("logout.robot", Json.encode(response));
+						}
+ 	        }
+					if (event.type() == BridgeEventType.REGISTER) {
+						log.info("A handler was registered");
+						log.info(event.rawMessage());
+ 	        }
+					if (event.type() == BridgeEventType.SEND) {
+						log.info("Client sent a message");
+						if (event.rawMessage().getString("address").equals("login.robot") && !activeRobots.contains(event.socket().writeHandlerID()))
+						{
+							log.info("Robot logged in");
+							activeRobots.add(event.socket().writeHandlerID());
+							JsonObject response = new JsonObject();
+							response.put("robotId", event.socket().writeHandlerID());
+							vertx.eventBus().publish("new.robot", Json.encode(response));
+						} else if (event.rawMessage().getString("address").equals("login.robot"))
+						{
+							log.info("Robot already logged in");
+						}
+
+						if (event.rawMessage().getString("address").equals("login.client"))
+						{
+							for (String robotID : activeRobots) {
+								log.info("Send active robots");
+								JsonObject response = new JsonObject();
+								response.put("robotId", robotID);
+								vertx.eventBus().publish("new.robot", Json.encode(response));
+							}
+						}
+ 	        }
+	        event.complete(true);
     });
 	}
 
