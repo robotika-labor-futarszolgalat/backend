@@ -187,11 +187,24 @@ public class HTTPVerticle extends AbstractVerticle {
 		http.websocketHandler(ws ->
 			{
 				String id = java.util.UUID.randomUUID().toString();
-				sockets.put(id, ws);
 				ws.handler(buffer ->
 					{
-						log.info("got the following message from " + id + ": " + buffer);
-						answer(id);
+						try {
+							JsonObject response = new JsonObject(buffer.toString());
+							if (response.getString("action") != null &&
+									response.getString("action").equals("login.robot") &&
+									sockets.get(id) == null)
+							{
+								log.info("robot logged in:" + id);
+								sockets.put(id, ws);
+							}
+							log.info("got the following message from " + id + ": " + Json.encode(response));
+							answer(id);
+						} catch (Exception e)
+						{
+							log.info("Cannot process the following buffer: " + buffer);
+							log.info("The following error happend: " + e.getMessage());
+						}
 					}
 				);
 				ws.endHandler(e -> sockets.remove(id));
