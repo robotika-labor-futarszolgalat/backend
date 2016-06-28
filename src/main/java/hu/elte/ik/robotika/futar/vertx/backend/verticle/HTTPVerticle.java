@@ -198,7 +198,7 @@ public class HTTPVerticle extends AbstractVerticle {
 								log.info("robot logged in:" + id);
 								sockets.put(id, ws);
 								JsonObject pb = new JsonObject();
-								response.put("robotId", id);
+								pb.put("robotId", id);
 								vertx.eventBus().publish("new.robot", Json.encode(pb));
 							}
 							log.info("got the following message from " + id + ": " + Json.encode(response));
