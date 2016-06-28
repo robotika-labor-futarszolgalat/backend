@@ -210,7 +210,13 @@ public class HTTPVerticle extends AbstractVerticle {
 						}
 					}
 				);
-				ws.endHandler(e -> sockets.remove(id));
+				ws.endHandler(e -> {
+					JsonObject response = new JsonObject();
+					response.put("robotId", id);
+					vertx.eventBus().publish("logout.robot", Json.encode(response));
+					sockets.remove(id);
+					log.info("The following robot logged out: " + id);
+				});
 			}).requestHandler(router::accept).listen(Integer.getInteger("http.port"), System.getProperty("http.address", "0.0.0.0"));
 	}
 
