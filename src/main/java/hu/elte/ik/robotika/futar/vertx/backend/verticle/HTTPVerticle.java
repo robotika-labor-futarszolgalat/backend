@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.awt.Point;
 
 import org.apache.http.HttpStatus;
 
@@ -47,6 +48,12 @@ import io.vertx.ext.web.RoutingContext;
 public class HTTPVerticle extends AbstractVerticle {
 	private final Logger log = LoggerFactory.getLogger(HTTPVerticle.class);
 	private Map<String, ServerWebSocket> sockets = new LinkedHashMap<String, ServerWebSocket>();
+
+	private Map<String, Point> placedBTDevices = new LinkedHashMap<String, Point>();
+
+	private List<String> newBTDevices = new ArrayList<String>();
+
+	private Map<String, Map<String, Integer>> btData = new LinkedHashMap<String, Map<String, Integer>>();
 
 	private List<String> activeRobots = new ArrayList<String>();
 
@@ -200,9 +207,29 @@ public class HTTPVerticle extends AbstractVerticle {
 								JsonObject pb = new JsonObject();
 								pb.put("robotId", id);
 								vertx.eventBus().publish("new.robot", Json.encode(pb));
+							} else if (response.getString("action") != null &&
+									response.getString("action").equals("found.bluetooth")) {
+										log.info("found.bluetooth");
+										JsonObject pb = response.getJsonObject("data");
+										if (placedBTDevices.get(pb.getString("address")) == null &&
+												!newBTDevices.contains(pb.getString("address")))
+												{
+													newBTDevices.add(pb.getString("address"));
+													log.info("New bt device: " + buffer);
+												}
+
+										if (btData.get(id) == null)
+										{
+											btData.put(id, new LinkedHashMap<String, Integer>());
+											log.info("New bt data for the following robot: " + id);
+										}
+											btData.get(id).remove(pb.getString("address"));
+											btData.get(id).put(pb.getString("address"), pb.getInteger("rssi"));
+											log.info("Update bt data: " + id + " " + pb.getString("address") + " " + pb.getInteger("rssi"));
 							}
+
 							log.info("got the following message from " + id + ": " + Json.encode(response));
-							answer(id);
+
 						} catch (Exception e)
 						{
 							log.info("Cannot process the following buffer: " + buffer);
