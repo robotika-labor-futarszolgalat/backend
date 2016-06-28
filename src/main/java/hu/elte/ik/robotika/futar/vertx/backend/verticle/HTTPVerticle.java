@@ -51,7 +51,7 @@ public class HTTPVerticle extends AbstractVerticle {
 
 	private Map<String, Point> placedBTDevices = new LinkedHashMap<String, Point>();
 
-	private List<String> newBTDevices = new ArrayList<String>();
+	private List<JsonObject> newBTDevices = new ArrayList<JsonObject>();
 
 	private Map<String, Map<String, Integer>> btData = new LinkedHashMap<String, Map<String, Integer>>();
 
@@ -74,6 +74,7 @@ public class HTTPVerticle extends AbstractVerticle {
     BridgeOptions options = new BridgeOptions()
             .addOutboundPermitted(new PermittedOptions().setAddressRegex("new.robot"));
 		options.addOutboundPermitted(new PermittedOptions().setAddressRegex("logout.robot"));
+		options.addOutboundPermitted(new PermittedOptions().setAddressRegex("new.bt.device"));
 		options.addInboundPermitted(new PermittedOptions().setAddressRegex("login.robot"));
 		options.addInboundPermitted(new PermittedOptions().setAddressRegex("login.client"));
 		options.addInboundPermitted(new PermittedOptions().setAddressRegex("robot.\\.[0-9]+"));
@@ -212,10 +213,11 @@ public class HTTPVerticle extends AbstractVerticle {
 										log.info("found.bluetooth");
 										JsonObject pb = response.getJsonObject("data");
 										if (placedBTDevices.get(pb.getString("address")) == null &&
-												!newBTDevices.contains(pb.getString("address")))
+												!newBTDevices.contains(pb))
 												{
-													newBTDevices.add(pb.getString("address"));
+													newBTDevices.add(pb);
 													log.info("New bt device: " + buffer);
+													vertx.eventBus().publish("new.bt.device", Json.encode(pb));
 												}
 
 										if (btData.get(id) == null)
