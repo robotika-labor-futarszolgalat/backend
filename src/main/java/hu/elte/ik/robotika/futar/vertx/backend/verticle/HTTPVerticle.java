@@ -46,7 +46,7 @@ import io.vertx.ext.web.RoutingContext;
  */
 public class HTTPVerticle extends AbstractVerticle {
 	private final Logger log = LoggerFactory.getLogger(HTTPVerticle.class);
-	private List<ServerWebSocket> sockets;
+	private Map<String, ServerWebSocket> sockets = new LinkedHashMap<String, ServerWebSocket>();
 
 	private List<String> activeRobots = new ArrayList<String>();
 
@@ -107,10 +107,10 @@ public class HTTPVerticle extends AbstractVerticle {
 
 						if (event.rawMessage().getString("address").equals("login.client"))
 						{
-							for (String robotID : activeRobots) {
+							for (String key : sockets.keySet()) {
 								log.info("Send active robots");
 								JsonObject response = new JsonObject();
-								response.put("robotId", robotID);
+								response.put("robotId", key);
 								vertx.eventBus().publish("new.robot", Json.encode(response));
 							}
 						}
@@ -148,6 +148,8 @@ public class HTTPVerticle extends AbstractVerticle {
 		// Setup websocket connection handling
 		router.route("/eventbus/*").handler(eventBusHandler());
 
+		router.route("/ws").handler(this::handleWebSocketConnection);
+
     // Handle robot position data
     router.route("/api/robotposition/:data").handler(this::handleRobotPositionData);
 
@@ -182,15 +184,26 @@ public class HTTPVerticle extends AbstractVerticle {
 		});
 
 		router.route().handler(StaticHandler.create().setWebRoot(webRoot));
-		http.websocketHandler(ws -> ws.handler(buffer -> log.info("buffer"))).requestHandler(router::accept).listen(Integer.getInteger("http.port"), System.getProperty("http.address", "0.0.0.0"));
+		http.websocketHandler(ws ->
+			{
+				String id = java.util.UUID.randomUUID().toString();
+				sockets.put(id, ws);
+				ws.handler(buffer ->
+					{
+						log.info("got the following message from " + id + ": " + buffer);
+						answer(id);
+					}
+				);
+				ws.endHandler(e -> sockets.remove(id));
+			}).requestHandler(router::accept).listen(Integer.getInteger("http.port"), System.getProperty("http.address", "0.0.0.0"));
+	}
+
+	private void answer(String id)
+	{
+			sockets.get(id).writeFinalTextFrame("Geronimo!");
 	}
 
 	private void handleWebSocketConnection(RoutingContext context) {
-		HttpServerRequest req = context.request();
-		ServerWebSocket ws = req.upgrade();
-		sockets.add(ws);
-		ws.handler(buffer -> log.info(buffer));
-		ws.endHandler(e -> sockets.remove(ws));
 	}
 
   private void handleRobotPositionData(RoutingContext context){
@@ -204,7 +217,7 @@ public class HTTPVerticle extends AbstractVerticle {
 
 	private void init() {
 		log.info("FrontendVerticle starting");
-		sockets = new ArrayList<>();
+		//ockets = new ArrayList<>();
 		webRoot = config().getString("webRoot", "src/main/resources/webroot");
 	}
 }
