@@ -333,8 +333,7 @@ public class HTTPVerticle extends AbstractVerticle {
 											log.info("the calculated distance is around: " + d + "m");
 											btData.get(id).put(pb.getString("address"), d*27);
 							} else if (response.getString("action") != null &&
-									response.getString("action").equals("start.bluetooth.scan") &&
-									sockets.get(id) == null)
+									response.getString("action").equals("start.bluetooth.scan"))
 							{
 								log.info("start.bluetooth.scan");
 								btData.remove(id);
@@ -342,8 +341,7 @@ public class HTTPVerticle extends AbstractVerticle {
 
 							}
 							else if (response.getString("action") != null &&
-									response.getString("action").equals("finished.bluetooth.scan") &&
-									sockets.get(id) == null)
+									response.getString("action").equals("finished.bluetooth.scan"))
 							{
 								log.info("finished.bluetooth.scan");
 								if (btData.get(id).size() >= 3)
