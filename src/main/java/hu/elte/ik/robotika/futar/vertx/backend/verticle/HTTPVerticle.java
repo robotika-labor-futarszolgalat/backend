@@ -80,11 +80,13 @@ public class HTTPVerticle extends AbstractVerticle {
 	    /* Check for solvability. */
 	    if (d > (r0 + r1))
 	    {
+					log.info("no solution. circles do not intersect.");
 	        /* no solution. circles do not intersect. */
 	        return false;
 	    }
 	    if (d < Math.abs(r0 - r1))
 	    {
+				log.info("no solution. one circle is contained in the other");
 	        /* no solution. one circle is contained in the other */
 	        return false;
 	    }
@@ -358,20 +360,23 @@ public class HTTPVerticle extends AbstractVerticle {
 											}
 									    double value = entry.getValue();
 											if (i == 0) {
-												log.info("fill first circle");
+
 												x0 = placedBT.getDouble("x");
 												y0 = placedBT.getDouble("y");
 												r0 = value;
+												log.info("fill first circle x: " + x0 + " y: " + y0 + " r: " + r0);
 											} else if (i == 1) {
-												log.info("fill second circle");
+
 												x1 = placedBT.getDouble("x");
 												y1 = placedBT.getDouble("y");
 												r1 = value;
+												log.info("fill second circle x: " + x1 + " y: " + y1 + " r: " + r1);
 											} else if (i == 2) {
-												log.info("fill third circle");
+
 												x2 = placedBT.getDouble("x");
 												y2 = placedBT.getDouble("y");
 												r2 = value;
+												log.info("fill third circle x: " + x2 + " y: " + y2 + " r: " + r2);
 											} else {
 												break;
 											}
@@ -380,7 +385,13 @@ public class HTTPVerticle extends AbstractVerticle {
 
 									if (i == 3) {
 										log.info("start calculation");
-										calculateThreeCircleIntersection(x0, y0, r0, x1, y1, r1, x2, y2, r2);
+										if (calculateThreeCircleIntersection(x0, y0, r0, x1, y1, r1, x2, y2, r2))
+										{
+											log.info("solved circle intersection");
+										} else
+										{
+											log.info("cannot solve circle interseciton");
+										}
 									} else {
 										log.info("there was not enough BT device: " + i);
 									}
