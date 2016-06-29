@@ -55,6 +55,8 @@ public class HTTPVerticle extends AbstractVerticle {
 
 	private Map<String, Map<String, Double>> btData = new LinkedHashMap<String, Map<String, Double>>();
 
+	private Map<String, JsonObject> positionedRobots = new LinkedHashMap<String, JsonObject>();
+
 	private List<String> activeRobots = new ArrayList<String>();
 
 	private String webRoot;
@@ -63,7 +65,7 @@ public class HTTPVerticle extends AbstractVerticle {
 
 	private boolean calculateThreeCircleIntersection(double x0, double y0, double r0,
                                                  double x1, double y1, double r1,
-                                                 double x2, double y2, double r2)
+                                                 double x2, double y2, double r2, String robotid)
 	{
 	    double a, dx, dy, d, h, rx, ry;
 	    double point2_x, point2_y;
@@ -120,6 +122,9 @@ public class HTTPVerticle extends AbstractVerticle {
 	    double intersectionPoint1_y = point2_y + ry;
 	    double intersectionPoint2_y = point2_y - ry;
 
+			double finalPosX = (intersectionPoint1_x + intersectionPoint2_x) / 2;
+			double finalPosY = (intersectionPoint1_y + intersectionPoint2_y) / 2;
+
 	    log.info("INTERSECTION Circle1 AND Circle2:" + "(" + intersectionPoint1_x + "," + intersectionPoint1_y + ")" + " AND (" + intersectionPoint2_x + "," + intersectionPoint2_y + ")");
 
 	    /* Lets determine if circle 3 intersects at either of the above intersection points. */
@@ -131,15 +136,26 @@ public class HTTPVerticle extends AbstractVerticle {
 	    dy = intersectionPoint2_y - y2;
 	    double d2 = Math.sqrt((dy*dy) + (dx*dx));
 
+
 	    if(Math.abs(d1 - r2) < EPSILON) {
 	        log.info("INTERSECTION Circle1 AND Circle2 AND Circle3:" + "(" + intersectionPoint1_x + "," + intersectionPoint1_y + ")");
-	    }
+					finalPosX = intersectionPoint1_x;
+					finalPosY = intersectionPoint1_y;
+			}
 	    else if(Math.abs(d2 - r2) < EPSILON) {
 	        log.info("INTERSECTION Circle1 AND Circle2 AND Circle3:" + "(" + intersectionPoint2_x + "," + intersectionPoint2_y + ")"); //here was an error
 	    }
 	    else {
 	        log.info("INTERSECTION Circle1 AND Circle2 AND Circle3:" + "NONE");
 	    }
+
+			positionedRobots.remove(robotid);
+			JsonObject response = new JsonObject();
+			response.put("robotId", robotid);
+			response.put("x", finalPosX);
+			response.put("y", finalPosY);
+			positionedRobots.put(robotid, response);
+			vertx.eventBus().publish("robot.position", Json.encode(response));
 	    return true;
 	}
 
@@ -160,6 +176,7 @@ public class HTTPVerticle extends AbstractVerticle {
 		options.addOutboundPermitted(new PermittedOptions().setAddressRegex("logout.robot"));
 		options.addOutboundPermitted(new PermittedOptions().setAddressRegex("new.bt.device"));
 		options.addOutboundPermitted(new PermittedOptions().setAddressRegex("placed.bt.device"));
+		options.addOutboundPermitted(new PermittedOptions().setAddressRegex("robot.position"));
 		options.addInboundPermitted(new PermittedOptions().setAddressRegex("login.robot"));
 		options.addInboundPermitted(new PermittedOptions().setAddressRegex("login.client"));
 		options.addInboundPermitted(new PermittedOptions().setAddressRegex("robot.\\.[0-9]+"));
@@ -214,6 +231,10 @@ public class HTTPVerticle extends AbstractVerticle {
 
 							for (JsonObject value : newBTDevices.values()) {
 							    vertx.eventBus().publish("new.bt.device", Json.encode(value));
+							}
+
+							for (JsonObject value : positionedRobots.values()) {
+							    vertx.eventBus().publish("robot.position", Json.encode(value));
 							}
 						}
 
@@ -387,7 +408,7 @@ public class HTTPVerticle extends AbstractVerticle {
 
 									if (i == 3) {
 										log.info("start calculation");
-										if (calculateThreeCircleIntersection(x0, y0, r0, x1, y1, r1, x2, y2, r2))
+										if (calculateThreeCircleIntersection(x0, y0, r0, x1, y1, r1, x2, y2, r2, id))
 										{
 											log.info("solved circle intersection");
 										} else
@@ -418,6 +439,8 @@ public class HTTPVerticle extends AbstractVerticle {
 					response.put("robotId", id);
 					vertx.eventBus().publish("logout.robot", Json.encode(response));
 					sockets.remove(id);
+					positionedRobots.remove(id);
+					btData.remove(id);
 					log.info("The following robot logged out: " + id);
 				});
 			}).requestHandler(router::accept).listen(Integer.getInteger("http.port"), System.getProperty("http.address", "0.0.0.0"));
