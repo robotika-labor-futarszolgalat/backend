@@ -330,7 +330,9 @@ public class HTTPVerticle extends AbstractVerticle {
 											btData.get(id).remove(pb.getString("address"));
 
 											log.info("Update bt data: " + id + " " + pb.getString("address") + " " + pb.getInteger("rssi"));
-											double d = Math.pow(10.0,(pb.getInteger("rssi") - (-40.0))/((-10.0)*2.0));
+											double x = (pb.getInteger("rssi") - (-40.0))/((-10.0)*2.0);
+											log.info("sub calc res: " + x);
+											double d = Math.pow(10.0, x);
 											//RSSI (dBm) = -10n log10(d) + A
 											log.info("the calculated distance is around: " + d + "m");
 											btData.get(id).put(pb.getString("address"), d*27);
