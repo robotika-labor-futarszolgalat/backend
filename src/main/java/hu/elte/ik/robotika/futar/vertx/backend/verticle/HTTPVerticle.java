@@ -390,7 +390,7 @@ public class HTTPVerticle extends AbstractVerticle {
 						} catch (Exception e)
 						{
 							log.info("Cannot process the following buffer: " + buffer);
-							log.info("The following error happend: " + e.getMessage());
+							log.error(e);
 						}
 					}
 				);
