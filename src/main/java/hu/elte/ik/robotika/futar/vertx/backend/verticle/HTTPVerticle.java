@@ -120,7 +120,7 @@ public class HTTPVerticle extends AbstractVerticle {
 	    double intersectionPoint1_y = point2_y + ry;
 	    double intersectionPoint2_y = point2_y - ry;
 
-	    log.info("INTERSECTION Circle1 AND Circle2:", "(" + intersectionPoint1_x + "," + intersectionPoint1_y + ")" + " AND (" + intersectionPoint2_x + "," + intersectionPoint2_y + ")");
+	    log.info("INTERSECTION Circle1 AND Circle2:" + "(" + intersectionPoint1_x + "," + intersectionPoint1_y + ")" + " AND (" + intersectionPoint2_x + "," + intersectionPoint2_y + ")");
 
 	    /* Lets determine if circle 3 intersects at either of the above intersection points. */
 	    dx = intersectionPoint1_x - x2;
@@ -132,13 +132,13 @@ public class HTTPVerticle extends AbstractVerticle {
 	    double d2 = Math.sqrt((dy*dy) + (dx*dx));
 
 	    if(Math.abs(d1 - r2) < EPSILON) {
-	        log.info("INTERSECTION Circle1 AND Circle2 AND Circle3:", "(" + intersectionPoint1_x + "," + intersectionPoint1_y + ")");
+	        log.info("INTERSECTION Circle1 AND Circle2 AND Circle3:" + "(" + intersectionPoint1_x + "," + intersectionPoint1_y + ")");
 	    }
 	    else if(Math.abs(d2 - r2) < EPSILON) {
-	        log.info("INTERSECTION Circle1 AND Circle2 AND Circle3:", "(" + intersectionPoint2_x + "," + intersectionPoint2_y + ")"); //here was an error
+	        log.info("INTERSECTION Circle1 AND Circle2 AND Circle3:" + "(" + intersectionPoint2_x + "," + intersectionPoint2_y + ")"); //here was an error
 	    }
 	    else {
-	        log.info("INTERSECTION Circle1 AND Circle2 AND Circle3:", "NONE");
+	        log.info("INTERSECTION Circle1 AND Circle2 AND Circle3:" + "NONE");
 	    }
 	    return true;
 	}
